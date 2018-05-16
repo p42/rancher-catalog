@@ -1,0 +1,515 @@
+version: '2'
+volumes:
+  {{- if .Values.STORAGE_DRIVER}}
+  {{.Values.VOLUME_PREFIX}}-certs:
+    driver: ${STORAGE_DRIVER}
+  {{.Values.VOLUME_PREFIX}}-data:
+    driver: ${STORAGE_DRIVER}
+  {{.Values.VOLUME_PREFIX}}-dav:
+    driver: ${STORAGE_DRIVER}
+  {{.Values.VOLUME_PREFIX}}-dkim:
+    driver: ${STORAGE_DRIVER}
+  {{.Values.VOLUME_PREFIX}}-filter:
+    driver: ${STORAGE_DRIVER}
+  {{.Values.VOLUME_PREFIX}}-mail:
+    driver: ${STORAGE_DRIVER}
+  {{.Values.VOLUME_PREFIX}}-overrides:
+    driver: ${STORAGE_DRIVER}
+  {{.Values.VOLUME_PREFIX}}-overrides-rspamd:
+    driver: ${STORAGE_DRIVER}
+  {{.Values.VOLUME_PREFIX}}-redis:
+    driver: ${STORAGE_DRIVER}
+  {{.Values.VOLUME_PREFIX}}-webmail:
+    driver: ${STORAGE_DRIVER}
+  {{- else}}
+  {{.Values.ROOT}}/certs:
+  {{.Values.ROOT}}/data:
+  {{.Values.ROOT}}/dav:
+  {{.Values.ROOT}}/dkim:
+  {{.Values.ROOT}}/filter:
+  {{.Values.ROOT}}/mail:
+  {{.Values.ROOT}}/overrides:
+  {{.Values.ROOT}}/redis:
+  {{.Values.ROOT}}/webmail:
+  {{- end}}
+services:
+  front:
+    image: mailu/nginx:$VERSION
+    restart: always
+    environment:
+      ROOT: ${ROOT}
+      VERSION: ${VERSION}
+      SECRET_KEY: ${SECRET_KEY}
+      BIND_ADDRESS4: ${BIND_ADDRESS4}
+      BIND_ADDRESS6: ${BIND_ADDRESS6}
+      DOMAIN: ${DOMAIN}
+      HOSTNAMES: ${HOSTNAMES}
+      POSTMASTER: ${POSTMASTER}
+      TLS_FLAVOR: ${TLS_FLAVOR}
+      AUTH_RATELIMIT: ${AUTH_RATELIMIT}
+      DISABLE_STATISTICS: ${DISABLE_STATISTICS}
+      ADMIN: ${ADMIN}
+      WEBMAIL: ${WEBMAIL}
+      WEBDAV: ${WEBDAV}
+      ANTIVIRUS: ${ANTIVIRUS}
+      MESSAGE_SIZE_LIMIT: ${MESSAGE_SIZE_LIMIT}
+      RELAYNETS: ${RELAYNETS}
+      RELAYHOST: ${RELAYHOST}
+      FETCHMAIL_DELAY: ${FETCHMAIL_DELAY}
+      RECIPIENT_DELIMITER: ${RECIPIENT_DELIMITER}
+      DMARC_RUA: ${DMARC_RUA}
+      DMARC_RUF: ${DMARC_RUF}
+      WELCOME: ${WELCOME}
+      WELCOME_SUBJECT: ${WELCOME_SUBJECT}
+      WELCOME_BODY: ${WELCOME_BODY}
+      WEB_ADMIN: ${WEB_ADMIN}
+      WEB_WEBMAIL: ${WEB_WEBMAIL}
+      SITENAME: ${SITENAME}
+      WEBSITE: ${WEBSITE}
+      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
+      PASSWORD_SCHEME: ${PASSWORD_SCHEME}
+    volumes:
+      {{- if .Values.STORAGE_DRIVER}}
+      - "$VOLUME_PREFIX-certs:/certs"
+      {{- else}}
+      - "$ROOT/certs:/certs"
+      {{- end}}
+    labels:
+      {{- if .Values.WORKER_HOST_LABEL}}
+      io.rancher.scheduler.affinity:host_label: ${WORKER_HOST_LABEL}
+      {{- end}}
+      mailu-rancher: ${DOMAIN}
+  redis:
+    image: redis:alpine
+    restart: always
+    environment:
+      ROOT: ${ROOT}
+      VERSION: ${VERSION}
+      SECRET_KEY: ${SECRET_KEY}
+      BIND_ADDRESS4: ${BIND_ADDRESS4}
+      BIND_ADDRESS6: ${BIND_ADDRESS6}
+      DOMAIN: ${DOMAIN}
+      HOSTNAMES: ${HOSTNAMES}
+      POSTMASTER: ${POSTMASTER}
+      TLS_FLAVOR: ${TLS_FLAVOR}
+      AUTH_RATELIMIT: ${AUTH_RATELIMIT}
+      DISABLE_STATISTICS: ${DISABLE_STATISTICS}
+      ADMIN: ${ADMIN}
+      WEBMAIL: ${WEBMAIL}
+      WEBDAV: ${WEBDAV}
+      ANTIVIRUS: ${ANTIVIRUS}
+      MESSAGE_SIZE_LIMIT: ${MESSAGE_SIZE_LIMIT}
+      RELAYNETS: ${RELAYNETS}
+      RELAYHOST: ${RELAYHOST}
+      FETCHMAIL_DELAY: ${FETCHMAIL_DELAY}
+      RECIPIENT_DELIMITER: ${RECIPIENT_DELIMITER}
+      DMARC_RUA: ${DMARC_RUA}
+      DMARC_RUF: ${DMARC_RUF}
+      WELCOME: ${WELCOME}
+      WELCOME_SUBJECT: ${WELCOME_SUBJECT}
+      WELCOME_BODY: ${WELCOME_BODY}
+      WEB_ADMIN: ${WEB_ADMIN}
+      WEB_WEBMAIL: ${WEB_WEBMAIL}
+      SITENAME: ${SITENAME}
+      WEBSITE: ${WEBSITE}
+      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
+      PASSWORD_SCHEME: ${PASSWORD_SCHEME}
+    volumes:
+      {{- if .Values.STORAGE_DRIVER}}
+      - "$VOLUME_PREFIX-redis:/data"
+      {{- else}}
+      - "$ROOT/redis:/data"
+      {{- end}}
+    labels:
+      io.rancher.scheduler.affinity:container_label: mailu-rancher=${DOMAIN}
+  imap:
+    image: mailu/dovecot:$VERSION
+    restart: always
+    environment:
+      ROOT: ${ROOT}
+      VERSION: ${VERSION}
+      SECRET_KEY: ${SECRET_KEY}
+      BIND_ADDRESS4: ${BIND_ADDRESS4}
+      BIND_ADDRESS6: ${BIND_ADDRESS6}
+      DOMAIN: ${DOMAIN}
+      HOSTNAMES: ${HOSTNAMES}
+      POSTMASTER: ${POSTMASTER}
+      TLS_FLAVOR: ${TLS_FLAVOR}
+      AUTH_RATELIMIT: ${AUTH_RATELIMIT}
+      DISABLE_STATISTICS: ${DISABLE_STATISTICS}
+      ADMIN: ${ADMIN}
+      WEBMAIL: ${WEBMAIL}
+      WEBDAV: ${WEBDAV}
+      ANTIVIRUS: ${ANTIVIRUS}
+      MESSAGE_SIZE_LIMIT: ${MESSAGE_SIZE_LIMIT}
+      RELAYNETS: ${RELAYNETS}
+      RELAYHOST: ${RELAYHOST}
+      FETCHMAIL_DELAY: ${FETCHMAIL_DELAY}
+      RECIPIENT_DELIMITER: ${RECIPIENT_DELIMITER}
+      DMARC_RUA: ${DMARC_RUA}
+      DMARC_RUF: ${DMARC_RUF}
+      WELCOME: ${WELCOME}
+      WELCOME_SUBJECT: ${WELCOME_SUBJECT}
+      WELCOME_BODY: ${WELCOME_BODY}
+      WEB_ADMIN: ${WEB_ADMIN}
+      WEB_WEBMAIL: ${WEB_WEBMAIL}
+      SITENAME: ${SITENAME}
+      WEBSITE: ${WEBSITE}
+      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
+      PASSWORD_SCHEME: ${PASSWORD_SCHEME}
+    volumes:
+      {{- if .Values.STORAGE_DRIVER}}
+      - "$VOLUME_PREFIX-data:/data"
+      - "$VOLUME_PREFIX-mail:/mail"
+      - "$VOLUME_PREFIX-overrides:/overrides"
+      - "$VOLUME_PREFIX-overrides-rspamd:/overrides/rspamd"
+      {{- else}}
+      - "$ROOT/data:/data"
+      - "$ROOT/mail:/mail"
+      - "$ROOT/overrides:/overrides"
+      {{- end}}
+    depends_on:
+      - front
+    labels:
+      io.rancher.scheduler.affinity:container_label: mailu-rancher=${DOMAIN}
+  smtp:
+    image: mailu/postfix:$VERSION
+    restart: always
+    environment:
+      ROOT: ${ROOT}
+      VERSION: ${VERSION}
+      SECRET_KEY: ${SECRET_KEY}
+      BIND_ADDRESS4: ${BIND_ADDRESS4}
+      BIND_ADDRESS6: ${BIND_ADDRESS6}
+      DOMAIN: ${DOMAIN}
+      HOSTNAMES: ${HOSTNAMES}
+      POSTMASTER: ${POSTMASTER}
+      TLS_FLAVOR: ${TLS_FLAVOR}
+      AUTH_RATELIMIT: ${AUTH_RATELIMIT}
+      DISABLE_STATISTICS: ${DISABLE_STATISTICS}
+      ADMIN: ${ADMIN}
+      WEBMAIL: ${WEBMAIL}
+      WEBDAV: ${WEBDAV}
+      ANTIVIRUS: ${ANTIVIRUS}
+      MESSAGE_SIZE_LIMIT: ${MESSAGE_SIZE_LIMIT}
+      RELAYNETS: ${RELAYNETS}
+      RELAYHOST: ${RELAYHOST}
+      FETCHMAIL_DELAY: ${FETCHMAIL_DELAY}
+      RECIPIENT_DELIMITER: ${RECIPIENT_DELIMITER}
+      DMARC_RUA: ${DMARC_RUA}
+      DMARC_RUF: ${DMARC_RUF}
+      WELCOME: ${WELCOME}
+      WELCOME_SUBJECT: ${WELCOME_SUBJECT}
+      WELCOME_BODY: ${WELCOME_BODY}
+      WEB_ADMIN: ${WEB_ADMIN}
+      WEB_WEBMAIL: ${WEB_WEBMAIL}
+      SITENAME: ${SITENAME}
+      WEBSITE: ${WEBSITE}
+      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
+      PASSWORD_SCHEME: ${PASSWORD_SCHEME}
+    volumes:
+      {{- if .Values.STORAGE_DRIVER}}
+      - "$VOLUME_PREFIX-data:/data"
+      - "$VOLUME_PREFIX-overrides:/overrides"
+      - "$VOLUME_PREFIX-overrides-rspamd:/overrides/rspamd"
+      {{- else}}
+      - "$ROOT/data:/data"
+      - "$ROOT/overrides:/overrides"
+      {{- end}}
+    depends_on:
+      - front
+    labels:
+      io.rancher.scheduler.affinity:container_label: mailu-rancher=${DOMAIN}
+  antispam:
+    image: mailu/rspamd:$VERSION
+    restart: always
+    environment:
+      ROOT: ${ROOT}
+      VERSION: ${VERSION}
+      SECRET_KEY: ${SECRET_KEY}
+      BIND_ADDRESS4: ${BIND_ADDRESS4}
+      BIND_ADDRESS6: ${BIND_ADDRESS6}
+      DOMAIN: ${DOMAIN}
+      HOSTNAMES: ${HOSTNAMES}
+      POSTMASTER: ${POSTMASTER}
+      TLS_FLAVOR: ${TLS_FLAVOR}
+      AUTH_RATELIMIT: ${AUTH_RATELIMIT}
+      DISABLE_STATISTICS: ${DISABLE_STATISTICS}
+      ADMIN: ${ADMIN}
+      WEBMAIL: ${WEBMAIL}
+      WEBDAV: ${WEBDAV}
+      ANTIVIRUS: ${ANTIVIRUS}
+      MESSAGE_SIZE_LIMIT: ${MESSAGE_SIZE_LIMIT}
+      RELAYNETS: ${RELAYNETS}
+      RELAYHOST: ${RELAYHOST}
+      FETCHMAIL_DELAY: ${FETCHMAIL_DELAY}
+      RECIPIENT_DELIMITER: ${RECIPIENT_DELIMITER}
+      DMARC_RUA: ${DMARC_RUA}
+      DMARC_RUF: ${DMARC_RUF}
+      WELCOME: ${WELCOME}
+      WELCOME_SUBJECT: ${WELCOME_SUBJECT}
+      WELCOME_BODY: ${WELCOME_BODY}
+      WEB_ADMIN: ${WEB_ADMIN}
+      WEB_WEBMAIL: ${WEB_WEBMAIL}
+      SITENAME: ${SITENAME}
+      WEBSITE: ${WEBSITE}
+      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
+      PASSWORD_SCHEME: ${PASSWORD_SCHEME}
+    volumes:
+      {{- if .Values.STORAGE_DRIVER}}
+      - "$VOLUME_PREFIX-filter:/var/lib/rspamd"
+      - "$VOLUME_PREFIX-dkim:/dkim"
+      - "$VOLUME_PREFIX-overrides-rspamd:/etc/rspamd/override.d"
+      {{- else}}
+      - "$ROOT/filter:/var/lib/rspamd"
+      - "$ROOT/dkim:/dkim"
+      - "$ROOT/overrides/rspamd:/etc/rspamd/override.d"
+      {{- end}}
+    depends_on:
+      - front
+    labels:
+      io.rancher.scheduler.affinity:container_label: mailu-rancher=${DOMAIN}
+  antivirus:
+    image: mailu/$ANTIVIRUS:$VERSION
+    restart: always
+    environment:
+      ROOT: ${ROOT}
+      VERSION: ${VERSION}
+      SECRET_KEY: ${SECRET_KEY}
+      BIND_ADDRESS4: ${BIND_ADDRESS4}
+      BIND_ADDRESS6: ${BIND_ADDRESS6}
+      DOMAIN: ${DOMAIN}
+      HOSTNAMES: ${HOSTNAMES}
+      POSTMASTER: ${POSTMASTER}
+      TLS_FLAVOR: ${TLS_FLAVOR}
+      AUTH_RATELIMIT: ${AUTH_RATELIMIT}
+      DISABLE_STATISTICS: ${DISABLE_STATISTICS}
+      ADMIN: ${ADMIN}
+      WEBMAIL: ${WEBMAIL}
+      WEBDAV: ${WEBDAV}
+      ANTIVIRUS: ${ANTIVIRUS}
+      MESSAGE_SIZE_LIMIT: ${MESSAGE_SIZE_LIMIT}
+      RELAYNETS: ${RELAYNETS}
+      RELAYHOST: ${RELAYHOST}
+      FETCHMAIL_DELAY: ${FETCHMAIL_DELAY}
+      RECIPIENT_DELIMITER: ${RECIPIENT_DELIMITER}
+      DMARC_RUA: ${DMARC_RUA}
+      DMARC_RUF: ${DMARC_RUF}
+      WELCOME: ${WELCOME}
+      WELCOME_SUBJECT: ${WELCOME_SUBJECT}
+      WELCOME_BODY: ${WELCOME_BODY}
+      WEB_ADMIN: ${WEB_ADMIN}
+      WEB_WEBMAIL: ${WEB_WEBMAIL}
+      SITENAME: ${SITENAME}
+      WEBSITE: ${WEBSITE}
+      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
+      PASSWORD_SCHEME: ${PASSWORD_SCHEME}
+    volumes:
+      {{- if .Values.STORAGE_DRIVER}}
+      - "$VOLUME_PREFIX-filter:/data"
+      {{- else}}
+      - "$ROOT/filter:/data"]
+      {{- end}}
+    labels:
+      io.rancher.scheduler.affinity:container_label: mailu-rancher=${DOMAIN}
+  webdav:
+    image: mailu/$WEBDAV:$VERSION
+    restart: always
+    environment:
+      ROOT: ${ROOT}
+      VERSION: ${VERSION}
+      SECRET_KEY: ${SECRET_KEY}
+      BIND_ADDRESS4: ${BIND_ADDRESS4}
+      BIND_ADDRESS6: ${BIND_ADDRESS6}
+      DOMAIN: ${DOMAIN}
+      HOSTNAMES: ${HOSTNAMES}
+      POSTMASTER: ${POSTMASTER}
+      TLS_FLAVOR: ${TLS_FLAVOR}
+      AUTH_RATELIMIT: ${AUTH_RATELIMIT}
+      DISABLE_STATISTICS: ${DISABLE_STATISTICS}
+      ADMIN: ${ADMIN}
+      WEBMAIL: ${WEBMAIL}
+      WEBDAV: ${WEBDAV}
+      ANTIVIRUS: ${ANTIVIRUS}
+      MESSAGE_SIZE_LIMIT: ${MESSAGE_SIZE_LIMIT}
+      RELAYNETS: ${RELAYNETS}
+      RELAYHOST: ${RELAYHOST}
+      FETCHMAIL_DELAY: ${FETCHMAIL_DELAY}
+      RECIPIENT_DELIMITER: ${RECIPIENT_DELIMITER}
+      DMARC_RUA: ${DMARC_RUA}
+      DMARC_RUF: ${DMARC_RUF}
+      WELCOME: ${WELCOME}
+      WELCOME_SUBJECT: ${WELCOME_SUBJECT}
+      WELCOME_BODY: ${WELCOME_BODY}
+      WEB_ADMIN: ${WEB_ADMIN}
+      WEB_WEBMAIL: ${WEB_WEBMAIL}
+      SITENAME: ${SITENAME}
+      WEBSITE: ${WEBSITE}
+      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
+      PASSWORD_SCHEME: ${PASSWORD_SCHEME}
+    volumes:
+      {{- if .Values.STORAGE_DRIVER}}
+      - "$VOLUME_PREFIX-dav:/data"
+      {{- else}}
+      - "$ROOT/dav:/data"
+      {{- end}}
+    labels:
+      io.rancher.scheduler.affinity:container_label: mailu-rancher=${DOMAIN}
+  admin:
+    image: mailu/admin:$VERSION
+    restart: always
+    environment:
+      ROOT: ${ROOT}
+      VERSION: ${VERSION}
+      SECRET_KEY: ${SECRET_KEY}
+      BIND_ADDRESS4: ${BIND_ADDRESS4}
+      BIND_ADDRESS6: ${BIND_ADDRESS6}
+      DOMAIN: ${DOMAIN}
+      HOSTNAMES: ${HOSTNAMES}
+      POSTMASTER: ${POSTMASTER}
+      TLS_FLAVOR: ${TLS_FLAVOR}
+      AUTH_RATELIMIT: ${AUTH_RATELIMIT}
+      DISABLE_STATISTICS: ${DISABLE_STATISTICS}
+      ADMIN: ${ADMIN}
+      WEBMAIL: ${WEBMAIL}
+      WEBDAV: ${WEBDAV}
+      ANTIVIRUS: ${ANTIVIRUS}
+      MESSAGE_SIZE_LIMIT: ${MESSAGE_SIZE_LIMIT}
+      RELAYNETS: ${RELAYNETS}
+      RELAYHOST: ${RELAYHOST}
+      FETCHMAIL_DELAY: ${FETCHMAIL_DELAY}
+      RECIPIENT_DELIMITER: ${RECIPIENT_DELIMITER}
+      DMARC_RUA: ${DMARC_RUA}
+      DMARC_RUF: ${DMARC_RUF}
+      WELCOME: ${WELCOME}
+      WELCOME_SUBJECT: ${WELCOME_SUBJECT}
+      WELCOME_BODY: ${WELCOME_BODY}
+      WEB_ADMIN: ${WEB_ADMIN}
+      WEB_WEBMAIL: ${WEB_WEBMAIL}
+      SITENAME: ${SITENAME}
+      WEBSITE: ${WEBSITE}
+      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
+      PASSWORD_SCHEME: ${PASSWORD_SCHEME}
+    volumes:
+      {{- if .Values.STORAGE_DRIVER}}
+      - "$VOLUME_PREFIX-data:/data"
+      - "$VOLUME_PREFIX-dkim:/dkim"
+      {{- else}}
+      - "$ROOT/data:/data"
+      - "$ROOT/dkim:/dkim"
+      {{- end}}
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      - redis
+    labels:
+      io.rancher.scheduler.affinity:container_label: mailu-rancher=${DOMAIN}
+  webmail:
+    image: "mailu/$WEBMAIL:$VERSION"
+    restart: always
+    environment:
+      ROOT: ${ROOT}
+      VERSION: ${VERSION}
+      SECRET_KEY: ${SECRET_KEY}
+      BIND_ADDRESS4: ${BIND_ADDRESS4}
+      BIND_ADDRESS6: ${BIND_ADDRESS6}
+      DOMAIN: ${DOMAIN}
+      HOSTNAMES: ${HOSTNAMES}
+      POSTMASTER: ${POSTMASTER}
+      TLS_FLAVOR: ${TLS_FLAVOR}
+      AUTH_RATELIMIT: ${AUTH_RATELIMIT}
+      DISABLE_STATISTICS: ${DISABLE_STATISTICS}
+      ADMIN: ${ADMIN}
+      WEBMAIL: ${WEBMAIL}
+      WEBDAV: ${WEBDAV}
+      ANTIVIRUS: ${ANTIVIRUS}
+      MESSAGE_SIZE_LIMIT: ${MESSAGE_SIZE_LIMIT}
+      RELAYNETS: ${RELAYNETS}
+      RELAYHOST: ${RELAYHOST}
+      FETCHMAIL_DELAY: ${FETCHMAIL_DELAY}
+      RECIPIENT_DELIMITER: ${RECIPIENT_DELIMITER}
+      DMARC_RUA: ${DMARC_RUA}
+      DMARC_RUF: ${DMARC_RUF}
+      WELCOME: ${WELCOME}
+      WELCOME_SUBJECT: ${WELCOME_SUBJECT}
+      WELCOME_BODY: ${WELCOME_BODY}
+      WEB_ADMIN: ${WEB_ADMIN}
+      WEB_WEBMAIL: ${WEB_WEBMAIL}
+      SITENAME: ${SITENAME}
+      WEBSITE: ${WEBSITE}
+      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
+      PASSWORD_SCHEME: ${PASSWORD_SCHEME}
+    volumes:
+      {{- if .Values.STORAGE_DRIVER}}
+      - "$VOLUME_PREFIX-webmail:/data"
+      {{- else}}
+      - "$ROOT/webmail:/data"
+      {{- end}}
+    labels:
+      io.rancher.scheduler.affinity:container_label: mailu-rancher=${DOMAIN}
+  fetchmail:
+    image: mailu/fetchmail:$VERSION
+    restart: always
+    environment:
+      ROOT: ${ROOT}
+      VERSION: ${VERSION}
+      SECRET_KEY: ${SECRET_KEY}
+      BIND_ADDRESS4: ${BIND_ADDRESS4}
+      BIND_ADDRESS6: ${BIND_ADDRESS6}
+      DOMAIN: ${DOMAIN}
+      HOSTNAMES: ${HOSTNAMES}
+      POSTMASTER: ${POSTMASTER}
+      TLS_FLAVOR: ${TLS_FLAVOR}
+      AUTH_RATELIMIT: ${AUTH_RATELIMIT}
+      DISABLE_STATISTICS: ${DISABLE_STATISTICS}
+      ADMIN: ${ADMIN}
+      WEBMAIL: ${WEBMAIL}
+      WEBDAV: ${WEBDAV}
+      ANTIVIRUS: ${ANTIVIRUS}
+      MESSAGE_SIZE_LIMIT: ${MESSAGE_SIZE_LIMIT}
+      RELAYNETS: ${RELAYNETS}
+      RELAYHOST: ${RELAYHOST}
+      FETCHMAIL_DELAY: ${FETCHMAIL_DELAY}
+      RECIPIENT_DELIMITER: ${RECIPIENT_DELIMITER}
+      DMARC_RUA: ${DMARC_RUA}
+      DMARC_RUF: ${DMARC_RUF}
+      WELCOME: ${WELCOME}
+      WELCOME_SUBJECT: ${WELCOME_SUBJECT}
+      WELCOME_BODY: ${WELCOME_BODY}
+      WEB_ADMIN: ${WEB_ADMIN}
+      WEB_WEBMAIL: ${WEB_WEBMAIL}
+      SITENAME: ${SITENAME}
+      WEBSITE: ${WEBSITE}
+      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
+      PASSWORD_SCHEME: ${PASSWORD_SCHEME}
+    volumes:
+      {{- if .Values.STORAGE_DRIVER}}
+      - "$VOLUME_PREFIX-data:/data"
+      {{- else}}
+      - "$ROOT/data:/data"
+      {{- end}}
+    labels:
+      io.rancher.scheduler.affinity:container_label: mailu-rancher=${DOMAIN}
+  loadbalancer:
+    image: rancher/lb-service-haproxy:${RANCHER_LB_VERSION}
+    ports:
+    - ${PORT_HTTP}:${PORT_HTTP}/tcp
+    - ${PORT_HTTPS}:${PORT_HTTPS}/tcp
+    - ${PORT_POP3}:${PORT_POP3}/tcp
+    - ${PORT_IMAP}:${PORT_IMAP}/tcp
+    - ${PORT_IMAPS}:${PORT_IMAPS}/tcp
+    - ${PORT_POP3S}:${PORT_POP3S}/tcp
+    - ${PORT_SMTP}:${PORT_SMTP}/tcp
+    - ${PORT_SMTPS}:${PORT_SMTPS}/tcp
+    - ${PORT_SUBMISSION}:${PORT_SUBMISSION}/tcp
+    labels:
+      {{- if .Values.SERVICE_HOST_LABEL}}
+      io.rancher.scheduler.affinity:host_label: ${SERVICE_HOST_LABEL}
+      {{- else}}
+      io.rancher.scheduler.affinity:container_label: mailu-rancher=${DOMAIN}
+      {{- end}}
+      io.rancher.container.agent.role: environmentAdmin,agent
+      io.rancher.container.agent_service.drain_provider: 'true'
+      io.rancher.container.create_agent: 'true'
+      {{- if .Values.SERVICE_HOST_LABEL}}
+      io.rancher.scheduler.global: 'true'
+      {{- end}}
